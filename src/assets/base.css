@@ -4,6 +4,7 @@
   --blue: hsl(221, 87%, 60%);
   --purple: hsl(301, 63%, 40%);
   --green: hsl(119, 34%, 47%);
+  --light-green: hsl(119, 34%, 90%);
 
   --red: hsl(5, 74%, 59%);
   --red2: hsl(344, 84%, 43%);
@@ -13,6 +14,7 @@
 
   --bg: hsl(230, 1%, 98%);
   --text-color: hsl(230, 8%, 24%);
+  --gray: hsl(230, 8%, 47%);
   --border-color: hsl(230, 8%, 24%, 20%);
   --accent: hsl(230, 100%, 60%);
 

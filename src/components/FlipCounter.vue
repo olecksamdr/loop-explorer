@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, defineProps, watch } from "vue";
+import { ref, defineProps, watch } from "vue";
 
 import FlipCard from "./FlipCard.vue";
 
@@ -17,71 +17,92 @@ const props = defineProps({
     required: true,
     default: 1,
   },
-  base: {
+  repeat: {
     type: Number,
-    required: true,
-    default: 10,
+    default: 1,
   },
   animate: {
     type: Boolean,
     required: true,
   },
+  // reset state when value changes
+  reset: {
+    type: Boolean,
+    default: "",
+  },
+  label: {
+    type: String,
+    default: "",
+  },
 });
 
-const emit = defineEmits(["animationEnd"]);
-
-const digits = computed(() => props.end.toString(props.base).length);
-
-console.log({ digits: digits.value });
+const emit = defineEmits(["stepEnd", "cycleEnd", "animationEnd"]);
 
 const end = ref(props.end);
 const step = ref(props.step);
-const count = ref(props.start);
+const current = ref(props.start);
+const next = ref(props.start + step.value);
+const repeated = ref(0);
 
 watch(
-  [() => props.start, () => props.end, () => props.step],
+  // TODO: Check watch source code
+  [
+    () => props.start,
+    () => props.end,
+    () => props.step,
+    () => props.repeat,
+    () => props.reset,
+  ],
   ([startProp, endProp, stepProp]) => {
-    count.value = startProp;
     end.value = endProp;
     step.value = stepProp;
+    current.value = startProp;
+    next.value = startProp + step.value;
+    repeated.value = 0;
   }
 );
 
 function increment() {
-  if (count.value + step.value < end.value) {
-    count.value += step.value;
+  emit("stepEnd", next.value);
+
+  if (next.value + step.value < end.value) {
+    current.value = next.value;
+    next.value += step.value;
   } else {
-    emit("animationEnd");
+    repeated.value += 1;
+
+    if (repeated.value < props.repeat) {
+      emit("cycleEnd", next.value);
+
+      current.value = next.value;
+      next.value = props.start;
+    } else {
+      console.log(repeated.value, props.animate);
+      emit("animationEnd", next.value);
+    }
   }
 }
-
-function getDigit(digit, number) {
-  const strNumber = number.toString(props.base).padStart(digits.value, "0");
-
-  console.log({ strNumber }, props.base, { number });
-
-  return parseInt(strNumber[digit]);
-}
-
-function animationEnd() {}
 </script>
 
 <template>
   <div class="wrapper">
+    <div class="label">{{ label }}</div>
     <FlipCard
-      v-for="n in digits"
-      :key="n"
       :animate="animate"
-      :current="getDigit(n - 1, count)"
-      :next="getDigit(n - 1, count + step)"
-      @animation-end="n === digits && increment()"
+      :current="current"
+      :next="next"
+      :reset="reset"
+      @animation-end="increment"
     />
   </div>
 </template>
 
 <style scoped>
 .wrapper {
-  display: flex;
-  gap: 16px;
+  text-align: center;
+}
+
+.label {
+  font-size: 3rem;
 }
 </style>

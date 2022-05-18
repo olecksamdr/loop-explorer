@@ -1,6 +1,4 @@
 <script setup>
-import { reactive, watch } from "vue";
-
 import { TOKEN_TYPES, parse } from "../utils/parser";
 
 const highlightTypes = [
@@ -30,7 +28,7 @@ const tokens = parse(props.code);
         class="code-input"
         :value="value"
         :name="name"
-        type="text"
+        type="number"
       />
       <span v-else-if="highlightTypes.includes(type)" :class="type">{{
         value

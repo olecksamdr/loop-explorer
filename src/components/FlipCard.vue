@@ -1,5 +1,5 @@
 <script setup>
-import { computed, watch, ref } from "vue";
+import { watch, ref } from "vue";
 // TODO: use slot for current
 const props = defineProps({
   current: {
@@ -23,6 +23,10 @@ const props = defineProps({
     type: Boolean,
     required: true,
   },
+  reset: {
+    type: Boolean,
+    default: "",
+  },
 });
 
 const emit = defineEmits(["animationEnd"]);
@@ -34,17 +38,10 @@ const bottomCurrent = ref(props.current);
 const bottomNext = ref(props.next);
 
 watch(
-  () => props.current,
-  (current) => {
-    // console.log("FlipCard", props.current, props.next);
+  [() => props.current, () => props.next, () => props.reset],
+  ([current, next]) => {
     topCurrent.value = current;
     bottomCurrent.value = current;
-  }
-);
-
-watch(
-  () => props.next,
-  (next) => {
     topNext.value = next;
     bottomNext.value = next;
   }
@@ -53,7 +50,6 @@ watch(
 // animation of top part ended and topCurrent part is back to starting position
 function topAnimationEnd() {
   topCurrent.value = topNext.value;
-  console.log(topCurrent.value);
 }
 
 // animation of bottom part ended and bottomFront part is back to starting position

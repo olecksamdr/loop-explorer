@@ -1,27 +1,25 @@
 <script setup>
 import { computed, reactive, ref } from "vue";
 
-import HelloWorld from "./components/HelloWorld.vue";
-import TheWelcome from "./components/TheWelcome.vue";
 import FlipCard from "./components/FlipCard.vue";
 import FlipCounter from "./components/FlipCounter.vue";
 import Code from "./components/Code.vue";
+import PlayButton from "./components/PlayButton.vue";
 
-const animate = ref(false);
+const animateJ = ref(false);
+const animateI = ref(false);
+
 const variables = reactive({
   i: 2,
   j: 3,
 });
 
-const end = computed(() => {
-  const strI = variables.i > 1 ? String(variables.i - 1) : 0;
-  const strJ = variables.j > 1 ? String(variables.j - 1) : 0;
+// if value of reset changes than componenet will be reseted :)
+const reset = ref(false);
 
-  console.log("parse", parseInt(strI + strJ, variables.j));
-  return parseInt(strI + strJ, variables.j);
-});
-
-const base = computed(() => (variables.j > 1 ? variables.j : 10));
+function resetCounters() {
+  reset.value = !reset.value;
+}
 
 const code = `
 for i in range({{i:${variables.i}}}):
@@ -32,13 +30,19 @@ for i in range({{i:${variables.i}}}):
 function onInput({ target }) {
   const { name, value } = target;
 
-  console.log({ value });
-
-  variables[name] = value === "" ? 0 : value;
+  variables[name] = value === "" ? 0 : parseInt(value, 10);
+  resetCounters();
 }
 
-function startAnimation() {
-  animate.value = true;
+function startStopAnimation() {
+  animateJ.value = !animateJ.value;
+  resetCounters();
+}
+
+function jCycleEnd(value) {
+  if (value === variables.j - 1) {
+    animateI.value = true;
+  }
 }
 </script>
 
@@ -47,30 +51,36 @@ function startAnimation() {
     <section class="code-section">
       <Code :code="code" @input="onInput" />
     </section>
+    <section class="center-section">
+      <PlayButton :playing="animateJ" @click="startStopAnimation" />
+    </section>
     <section class="counter-section">
       <FlipCounter
+        label="i"
         :start="0"
-        :end="end"
         :step="1"
-        :base="base"
-        :animate="animate"
-        @animation-end="animate = false"
+        :animate="animateI"
+        :end="variables.i"
+        :reset="reset"
+        @step-end="animateI = false"
+      />
+      <FlipCounter
+        label="j"
+        :start="0"
+        :step="1"
+        :animate="animateJ"
+        :end="variables.j"
+        :repeat="Math.max(variables.i, 1)"
+        :reset="reset"
+        @cycle-end="jCycleEnd"
+        @animation-end="animateJ = false"
       />
     </section>
-    <button @click="startAnimation">play</button>
   </main>
 </template>
 
 <style>
 @import "./assets/base.css";
-
-#app {
-  /* max-width: 1280px; */
-  margin: 0 auto;
-  padding: 2rem;
-
-  font-weight: normal;
-}
 
 .counter-section,
 .code-section {
@@ -78,10 +88,17 @@ function startAnimation() {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
+}
+
+.center-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .code-section {
-  border-right: 1px solid var(--border-color);
+  /* border-right: 1px solid var(--border-color); */
   font-size: 2rem;
   padding: 16px;
 }
@@ -90,12 +107,21 @@ main {
   height: 100vh;
   width: 100%;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr min-content 1fr;
+  /* align-items: center; */
 }
 
 @keyframes attention {
   to {
     box-shadow: 0 0 0 2px var(--accent);
   }
+}
+
+.center-section::before,
+.center-section::after {
+  content: "";
+  width: 1px;
+  background-color: var(--border-color);
+  flex-grow: 1;
 }
 </style>
